@@ -13,26 +13,58 @@ import {Feather} from 'react-native-feather';
 import uuid from 'react-uuid';
 
 import Goal from './components/Goal';
+import useGoals from './hooks/useGoals';
 import {Goal as GoalType} from './types';
 
 function App(): JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
 
   const [goal, setGoal] = useState('');
-  const [goals] = useState<GoalType[]>([
+
+  const {goals, setGoals} = useGoals('@goals', [
     {
       id: uuid(),
       description: 'Set goals for today',
       completed: false,
     },
   ]);
-  const [completedGoals] = useState<GoalType[]>([
-    {
+
+  const {goals: completedGoals, setGoals: setCompletedGoals} = useGoals(
+    '@completed_goals',
+    [
+      {
+        id: uuid(),
+        description: 'Install app to track goals',
+        completed: false,
+      },
+    ],
+  );
+
+  const markAsCompleted = async (completedGoal: GoalType) => {
+    setCompletedGoals([completedGoal, ...completedGoals]);
+    const updatedGoals = goals.filter(g => g.id !== completedGoal.id);
+    setGoals(updatedGoals);
+  };
+
+  const deleteGoal = (deletedGoal: GoalType) => {
+    const updatedGoals = completedGoals.filter(g => g.id !== deletedGoal.id);
+    setCompletedGoals(updatedGoals);
+  };
+
+  const addGoal = async () => {
+    if (!goal) {
+      return;
+    }
+
+    const newGoal: GoalType = {
+      description: goal,
       id: uuid(),
-      description: 'Install app to track goals',
       completed: false,
-    },
-  ]);
+    };
+
+    setGoals([newGoal, ...goals]);
+    setGoal('');
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -46,7 +78,7 @@ function App(): JSX.Element {
             style={styles.flexGrow}
             data={goals}
             renderItem={({item}) => (
-              <Goal data={item} action={() => {}} type="todo" />
+              <Goal data={item} action={markAsCompleted} type="todo" />
             )}
             keyExtractor={item => item.id}
           />
@@ -59,7 +91,7 @@ function App(): JSX.Element {
             style={styles.flexGrow}
             data={completedGoals}
             renderItem={({item}) => (
-              <Goal data={item} action={() => {}} type="completed" />
+              <Goal data={item} action={deleteGoal} type="completed" />
             )}
             keyExtractor={item => item.id}
           />
@@ -76,7 +108,7 @@ function App(): JSX.Element {
         />
 
         <View style={styles.actionButtons}>
-          <Feather stroke="black" width={25} height={50} onPress={() => {}} />
+          <Feather stroke="black" width={25} height={50} onPress={addGoal} />
         </View>
       </View>
     </SafeAreaView>
