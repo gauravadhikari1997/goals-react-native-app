@@ -8,3 +8,5 @@ export type Goal = {
     notification: string;
   };
 };
+
+export type ColorScheme = 'light' | 'dark';

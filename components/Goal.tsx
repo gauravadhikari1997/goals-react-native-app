@@ -1,9 +1,17 @@
 import React, {useRef, useState} from 'react';
-import {Text, StyleSheet, View, Animated, Easing} from 'react-native';
+import {
+  Text,
+  StyleSheet,
+  View,
+  Animated,
+  Easing,
+  useColorScheme,
+} from 'react-native';
 import {CheckCircle, Circle, X} from 'react-native-feather';
 
 import DueTime from './DueTime';
-import {Goal as GoalType} from '../types';
+import {colors} from '../constants';
+import {ColorScheme, Goal as GoalType} from '../types';
 
 interface GoalProps {
   data: GoalType;
@@ -12,6 +20,9 @@ interface GoalProps {
 }
 
 const Goal: React.FC<GoalProps> = ({data, action, type}) => {
+  const colorScheme = useColorScheme() ?? 'light';
+  const styles = styling(colorScheme);
+
   const [disabled, setDisabled] = useState(false);
 
   const completed = type === 'completed';
@@ -78,28 +89,30 @@ const Goal: React.FC<GoalProps> = ({data, action, type}) => {
   );
 };
 
-const styles = StyleSheet.create({
-  goalContainer: {
-    gap: 5,
-    flexWrap: 'wrap',
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 5,
-  },
-  goal: {
-    gap: 5,
-    flex: 1,
-    flexWrap: 'wrap',
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  actionButton: {
-    alignSelf: 'flex-start',
-    marginTop: 5,
-  },
-  description: {
-    fontSize: 18,
-  },
-});
+const styling = (colorScheme: ColorScheme) =>
+  StyleSheet.create({
+    goalContainer: {
+      gap: 5,
+      flexWrap: 'wrap',
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginVertical: 5,
+    },
+    goal: {
+      gap: 5,
+      flex: 1,
+      flexWrap: 'wrap',
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    actionButton: {
+      alignSelf: 'flex-start',
+      marginTop: 5,
+    },
+    description: {
+      fontSize: 18,
+      color: colors[colorScheme].primary,
+    },
+  });
 
 export default Goal;

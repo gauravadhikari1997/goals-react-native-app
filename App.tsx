@@ -13,11 +13,14 @@ import {Feather} from 'react-native-feather';
 import uuid from 'react-uuid';
 
 import Goal from './components/Goal';
+import {colors} from './constants';
 import useGoals from './hooks/useGoals';
-import {Goal as GoalType} from './types';
+import {ColorScheme, Goal as GoalType} from './types';
 
 function App(): JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
+  const colorScheme = useColorScheme() ?? 'light';
+  const isDarkMode = colorScheme === 'dark';
+  const styles = styling(colorScheme);
 
   const [goal, setGoal] = useState('');
 
@@ -108,67 +111,73 @@ function App(): JSX.Element {
         />
 
         <View style={styles.actionButtons}>
-          <Feather stroke="black" width={25} height={50} onPress={addGoal} />
+          <Feather
+            stroke={colors[colorScheme].primary}
+            width={25}
+            height={50}
+            onPress={addGoal}
+          />
         </View>
       </View>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    margin: 10,
-  },
-  flexGrow: {
-    flex: 1,
-  },
-  header: {
-    fontSize: 24,
-    textAlign: 'center',
-    fontWeight: '500',
-    color: '#0c6274',
-  },
-  subHeader: {
-    fontSize: 10,
-    textAlign: 'center',
-  },
-  inputContainer: {
-    gap: 10,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginVertical: 5,
-  },
-  input: {
-    flex: 1,
-    borderWidth: 2,
-    borderColor: '#0c6274',
-    borderRadius: 10,
-    height: 50,
-    padding: 10,
-    paddingRight: 80,
-  },
-  addIcon: {position: 'absolute', right: 10},
-  listContainer: {
-    flex: 1,
-    gap: 5,
-  },
-  list: {
-    flex: 1,
-    borderColor: '#0c6274',
-    borderWidth: 2,
-    borderRadius: 10,
-    padding: 10,
-    overflow: 'hidden',
-  },
-  actionButtons: {
-    flexDirection: 'row',
-    position: 'absolute',
-    right: 10,
-    gap: 15,
-  },
-});
+const styling = (colorScheme: ColorScheme) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors[colorScheme].secondary,
+      padding: 10,
+    },
+    flexGrow: {
+      flex: 1,
+    },
+    header: {
+      fontSize: 24,
+      textAlign: 'center',
+      fontWeight: '500',
+      color: colors[colorScheme].header,
+    },
+    subHeader: {
+      fontSize: 10,
+      textAlign: 'center',
+    },
+    inputContainer: {
+      gap: 10,
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginVertical: 5,
+    },
+    input: {
+      flex: 1,
+      borderWidth: 2,
+      borderColor: colors[colorScheme].header,
+      borderRadius: 10,
+      height: 50,
+      padding: 10,
+      paddingRight: 80,
+    },
+    addIcon: {position: 'absolute', right: 10},
+    listContainer: {
+      flex: 1,
+      gap: 5,
+    },
+    list: {
+      flex: 1,
+      borderColor: colors[colorScheme].header,
+      borderWidth: 2,
+      borderRadius: 10,
+      padding: 10,
+      overflow: 'hidden',
+    },
+    actionButtons: {
+      flexDirection: 'row',
+      position: 'absolute',
+      right: 10,
+      gap: 15,
+    },
+  });
 
 export default App;
