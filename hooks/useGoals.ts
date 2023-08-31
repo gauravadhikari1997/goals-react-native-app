@@ -1,5 +1,6 @@
 import {useAsyncStorage} from '@react-native-async-storage/async-storage';
 import {useEffect, useState} from 'react';
+import {Alert} from 'react-native';
 
 import {Goal} from '../types';
 
@@ -10,10 +11,14 @@ const useGoals = (storageKey: string, initialData: Goal[]) => {
     useAsyncStorage(storageKey);
 
   const readGoalsFromStorage = async () => {
-    const allGoals = JSON.parse(
-      (await getGoalsFromStorage()) || JSON.stringify(initialData),
-    );
-    setGoals(allGoals);
+    try {
+      const allGoals = JSON.parse(
+        (await getGoalsFromStorage()) || JSON.stringify(initialData),
+      );
+      setGoals(allGoals);
+    } catch (error) {
+      Alert.alert('Error Reading Goals', JSON.stringify(error));
+    }
   };
 
   const writeGoalsToStorage = async (updatedGoals: Goal[]) => {
@@ -22,7 +27,7 @@ const useGoals = (storageKey: string, initialData: Goal[]) => {
       // refetch the goals
       readGoalsFromStorage();
     } catch (error) {
-      console.error(`Unable to write goal to storage for ${storageKey}`);
+      Alert.alert(`Unable to write goal to storage for ${storageKey}`);
     }
   };
 
@@ -30,7 +35,7 @@ const useGoals = (storageKey: string, initialData: Goal[]) => {
     try {
       readGoalsFromStorage();
     } catch (error) {
-      console.error(`Unable read goals from storage for ${storageKey}`);
+      Alert.alert(`Unable read goals from storage for ${storageKey}`);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
