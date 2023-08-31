@@ -13,6 +13,7 @@ import {Feather} from 'react-native-feather';
 import uuid from 'react-uuid';
 
 import Goal from './components/Goal';
+import DateTimePicker from './components/DateTimePicker';
 import {colors} from './constants';
 import useGoals from './hooks/useGoals';
 import {ColorScheme, Goal as GoalType} from './types';
@@ -23,6 +24,7 @@ function App(): JSX.Element {
   const styles = styling(colorScheme);
 
   const [goal, setGoal] = useState('');
+  const [time, setTime] = useState<Date>();
 
   const {goals, setGoals} = useGoals('@goals', [
     {
@@ -63,10 +65,12 @@ function App(): JSX.Element {
       description: goal,
       id: uuid(),
       completed: false,
+      time,
     };
 
     setGoals([newGoal, ...goals]);
     setGoal('');
+    setTime(undefined);
   };
 
   return (
@@ -111,6 +115,7 @@ function App(): JSX.Element {
         />
 
         <View style={styles.actionButtons}>
+          <DateTimePicker time={time} setTime={setTime} />
           <Feather
             stroke={colors[colorScheme].primary}
             width={25}
