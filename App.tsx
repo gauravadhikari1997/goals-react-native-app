@@ -1,5 +1,7 @@
-import React, {useState} from 'react';
+import messaging from '@react-native-firebase/messaging';
+import React, {useEffect, useState} from 'react';
 import {
+  Alert,
   FlatList,
   SafeAreaView,
   StatusBar,
@@ -17,6 +19,7 @@ import DateTimePicker from './components/DateTimePicker';
 import {colors} from './constants';
 import useGoals from './hooks/useGoals';
 import {ColorScheme, Goal as GoalType} from './types';
+import {cancelNotification, scheduleNotification} from './utils';
 
 function App(): JSX.Element {
   const colorScheme = useColorScheme() ?? 'light';
@@ -45,7 +48,38 @@ function App(): JSX.Element {
     ],
   );
 
+  useEffect(() => {
+    const unsubscribe = messaging().onMessage(async remoteMessage => {
+      Alert.alert('A new FCM message arrived!', JSON.stringify(remoteMessage));
+    });
+
+    return unsubscribe;
+  }, []);
+
+  useEffect(() => {
+    // Assume a message-notification contains a "type" property in the data payload of the screen to open
+    messaging().onNotificationOpenedApp(remoteMessage => {
+      console.log(
+        'Notification caused app to open from background state:',
+        remoteMessage.notification,
+      );
+    });
+
+    // Check whether an initial notification is available
+    messaging()
+      .getInitialNotification()
+      .then(remoteMessage => {
+        if (remoteMessage) {
+          console.log(
+            'Notification caused app to open from quit state:',
+            remoteMessage.notification,
+          );
+        }
+      });
+  }, []);
+
   const markAsCompleted = async (completedGoal: GoalType) => {
+    cancelNotification(completedGoal);
     setCompletedGoals([completedGoal, ...completedGoals]);
     const updatedGoals = goals.filter(g => g.id !== completedGoal.id);
     setGoals(updatedGoals);
@@ -67,6 +101,8 @@ function App(): JSX.Element {
       completed: false,
       time,
     };
+
+    newGoal.notificationIdentifier = await scheduleNotification(newGoal);
 
     setGoals([newGoal, ...goals]);
     setGoal('');

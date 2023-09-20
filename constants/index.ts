@@ -21,4 +21,6 @@ const colors = {
   },
 };
 
-export {colors};
+const REMINDER_TIME = 15;
+
+export {colors, REMINDER_TIME};
