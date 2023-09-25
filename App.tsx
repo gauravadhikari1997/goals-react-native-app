@@ -18,6 +18,7 @@ import Goal from './components/Goal';
 import DateTimePicker from './components/DateTimePicker';
 import {colors} from './constants';
 import useGoals from './hooks/useGoals';
+import SplashScreenProvider from './providers/SplashScreenProvider';
 import {ColorScheme, Goal as GoalType} from './types';
 import {cancelNotification, scheduleNotification} from './utils';
 
@@ -25,6 +26,8 @@ function App(): JSX.Element {
   const colorScheme = useColorScheme() ?? 'light';
   const isDarkMode = colorScheme === 'dark';
   const styles = styling(colorScheme);
+
+  const [isAppReady, setIsAppReady] = useState(false);
 
   const [goal, setGoal] = useState('');
   const [time, setTime] = useState<Date>();
@@ -47,6 +50,10 @@ function App(): JSX.Element {
       },
     ],
   );
+
+  useEffect(() => {
+    setIsAppReady(true);
+  }, []);
 
   useEffect(() => {
     const unsubscribe = messaging().onMessage(async remoteMessage => {
@@ -110,57 +117,59 @@ function App(): JSX.Element {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <View style={styles.listContainer}>
-        <View style={styles.list}>
-          <Text style={styles.header}>Goals To Accomplish 🎯</Text>
-          <Text style={styles.subHeader}>Check to mark as completed</Text>
+    <SplashScreenProvider isAppReady={isAppReady}>
+      <SafeAreaView style={styles.container}>
+        <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
+        <View style={styles.listContainer}>
+          <View style={styles.list}>
+            <Text style={styles.header}>Goals To Accomplish 🎯</Text>
+            <Text style={styles.subHeader}>Check to mark as completed</Text>
 
-          <FlatList
-            style={styles.flexGrow}
-            data={goals}
-            renderItem={({item}) => (
-              <Goal data={item} action={markAsCompleted} type="todo" />
-            )}
-            keyExtractor={item => item.id}
-          />
+            <FlatList
+              style={styles.flexGrow}
+              data={goals}
+              renderItem={({item}) => (
+                <Goal data={item} action={markAsCompleted} type="todo" />
+              )}
+              keyExtractor={item => item.id}
+            />
+          </View>
+
+          <View style={styles.list}>
+            <Text style={styles.header}>Completed Goals 🚀</Text>
+
+            <FlatList
+              style={styles.flexGrow}
+              data={completedGoals}
+              renderItem={({item}) => (
+                <Goal data={item} action={deleteGoal} type="completed" />
+              )}
+              keyExtractor={item => item.id}
+            />
+          </View>
         </View>
 
-        <View style={styles.list}>
-          <Text style={styles.header}>Completed Goals 🚀</Text>
-
-          <FlatList
-            style={styles.flexGrow}
-            data={completedGoals}
-            renderItem={({item}) => (
-              <Goal data={item} action={deleteGoal} type="completed" />
-            )}
-            keyExtractor={item => item.id}
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            value={goal}
+            onChangeText={e => setGoal(e)}
+            placeholder="Type your goal here..."
+            multiline
           />
-        </View>
-      </View>
 
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          value={goal}
-          onChangeText={e => setGoal(e)}
-          placeholder="Type your goal here..."
-          multiline
-        />
-
-        <View style={styles.actionButtons}>
-          <DateTimePicker time={time} setTime={setTime} />
-          <Feather
-            stroke={colors[colorScheme].primary}
-            width={25}
-            height={50}
-            onPress={addGoal}
-          />
+          <View style={styles.actionButtons}>
+            <DateTimePicker time={time} setTime={setTime} />
+            <Feather
+              stroke={colors[colorScheme].primary}
+              width={25}
+              height={50}
+              onPress={addGoal}
+            />
+          </View>
         </View>
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
+    </SplashScreenProvider>
   );
 }
 
