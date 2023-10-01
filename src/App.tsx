@@ -8,10 +8,13 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
   useColorScheme,
 } from 'react-native';
+import DraggableFlatList from 'react-native-draggable-flatlist';
 import {Feather} from 'react-native-feather';
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import uuid from 'react-uuid';
 
 import Goal from './components/Goal';
@@ -40,6 +43,8 @@ function App(): JSX.Element {
     },
   ]);
 
+  const [localGoals, setLocalGoals] = useState<GoalType[]>(goals); // to avoid flickering issues while reordering goals
+
   const {goals: completedGoals, setGoals: setCompletedGoals} = useGoals(
     '@completed_goals',
     [
@@ -50,6 +55,10 @@ function App(): JSX.Element {
       },
     ],
   );
+
+  useEffect(() => {
+    setLocalGoals(goals);
+  }, [goals]);
 
   useEffect(() => {
     setIsAppReady(true);
@@ -118,57 +127,64 @@ function App(): JSX.Element {
 
   return (
     <SplashScreenProvider isAppReady={isAppReady}>
-      <SafeAreaView style={styles.container}>
-        <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-        <View style={styles.listContainer}>
-          <View style={styles.list}>
-            <Text style={styles.header}>Goals To Accomplish 🎯</Text>
-            <Text style={styles.subHeader}>Check to mark as completed</Text>
+      <GestureHandlerRootView style={styles.flexGrow}>
+        <SafeAreaView style={styles.container}>
+          <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
+          <View style={styles.listContainer}>
+            <View style={styles.list}>
+              <Text style={styles.header}>Goals To Accomplish 🎯</Text>
+              <Text style={styles.subHeader}>Check to mark as completed</Text>
 
-            <FlatList
-              style={styles.flexGrow}
-              data={goals}
-              renderItem={({item}) => (
-                <Goal data={item} action={markAsCompleted} type="todo" />
-              )}
-              keyExtractor={item => item.id}
-            />
+              <DraggableFlatList
+                data={localGoals}
+                onDragEnd={({data}) => {
+                  setLocalGoals(data);
+                  setGoals(data);
+                }}
+                keyExtractor={item => item.id}
+                renderItem={({item, drag, isActive}) => (
+                  <TouchableOpacity onLongPress={drag} disabled={isActive}>
+                    <Goal data={item} action={markAsCompleted} type="todo" />
+                  </TouchableOpacity>
+                )}
+              />
+            </View>
+
+            <View style={styles.list}>
+              <Text style={styles.header}>Completed Goals 🚀</Text>
+
+              <FlatList
+                style={styles.flexGrow}
+                data={completedGoals}
+                renderItem={({item}) => (
+                  <Goal data={item} action={deleteGoal} type="completed" />
+                )}
+                keyExtractor={item => item.id}
+              />
+            </View>
           </View>
 
-          <View style={styles.list}>
-            <Text style={styles.header}>Completed Goals 🚀</Text>
-
-            <FlatList
-              style={styles.flexGrow}
-              data={completedGoals}
-              renderItem={({item}) => (
-                <Goal data={item} action={deleteGoal} type="completed" />
-              )}
-              keyExtractor={item => item.id}
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.input}
+              value={goal}
+              onChangeText={e => setGoal(e)}
+              placeholder="Type your goal here..."
+              multiline
             />
-          </View>
-        </View>
 
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.input}
-            value={goal}
-            onChangeText={e => setGoal(e)}
-            placeholder="Type your goal here..."
-            multiline
-          />
-
-          <View style={styles.actionButtons}>
-            <DateTimePicker time={time} setTime={setTime} />
-            <Feather
-              stroke={colors[colorScheme].primary}
-              width={25}
-              height={50}
-              onPress={addGoal}
-            />
+            <View style={styles.actionButtons}>
+              <DateTimePicker time={time} setTime={setTime} />
+              <Feather
+                stroke={colors[colorScheme].primary}
+                width={25}
+                height={50}
+                onPress={addGoal}
+              />
+            </View>
           </View>
-        </View>
-      </SafeAreaView>
+        </SafeAreaView>
+      </GestureHandlerRootView>
     </SplashScreenProvider>
   );
 }
